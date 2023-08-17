@@ -14,7 +14,7 @@ const HomeNavigator = props => {
       {/* <Stack.Screen name={"SplashScreen"} component={SplashScreen} /> */}
       {/* <Stack.Screen name={"Intro"} component={Intro}/> */}
 
-      <Stack.Screen name={'Home'} component={HomeScreen} />
+      {/* <Stack.Screen name={'Home'} component={HomeScreen} /> */}
       <Stack.Screen name={'LoginScreen'} component={LoginScreen} />
       <Stack.Screen name={'SignUpScreen'} component={SignUpScreen} />
       <Stack.Screen name={'EarningsScreen'} component={EarningsScreen} />

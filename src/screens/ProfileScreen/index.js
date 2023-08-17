@@ -9,8 +9,10 @@ import {
 } from 'react-native';
 import {Dropdown} from 'react-native-element-dropdown';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import ImagePicker from 'react-native-image-picker';
+// import ImagePicker from 'react-native-image-picker';
 import {useUpdateUserProfileMutation} from '../../ReduxTollKit/Stepney/stepneyUser';
+import {launchImageLibrary} from 'react-native-image-picker';
+
 const ProfileScreen = () => {
   // Replace these sample data with the actual user data
   const [userData, setUserData] = useState({
@@ -109,28 +111,39 @@ const ProfileScreen = () => {
   };
   console.log('Data,', data, error);
   // Function to handle profile picture selection
-  const handleChooseProfilePic = () => {
-    const options = {
-      title: 'Select Profile Picture',
-      cancelButtonTitle: 'Cancel',
-      takePhotoButtonTitle: 'Take Photo',
-      chooseFromLibraryButtonTitle: 'Choose from Library',
+  // const handleChooseProfilePic = () => {
+  //   const options = {
+  //     title: 'Select Profile Picture',
+  //     cancelButtonTitle: 'Cancel',
+  //     takePhotoButtonTitle: 'Take Photo',
+  //     chooseFromLibraryButtonTitle: 'Choose from Library',
+  //     mediaType: 'photo',
+  //     quality: 0.5,
+  //   };
+
+  //   ImagePicker.showImagePicker(options, response => {
+  //     if (response.didCancel) {
+  //       // User cancelled the picker
+  //     } else if (response.error) {
+  //       // Error occurred while picking the image
+  //     } else {
+  //       // Image selected successfully, set the new profile picture
+  //       setProfilePic({uri: response.uri});
+  //     }
+  //   });
+  // };
+
+  const [ImageUrl, setImageUrl] = React.useState('');
+  const handlePickImage = React.useCallback(async () => {
+    const result = await launchImageLibrary({
+      maxHeight: 200,
+      maxWidth: 200,
+      selectionLimit: 1,
       mediaType: 'photo',
-      quality: 0.5,
-    };
-
-    ImagePicker.showImagePicker(options, response => {
-      if (response.didCancel) {
-        // User cancelled the picker
-      } else if (response.error) {
-        // Error occurred while picking the image
-      } else {
-        // Image selected successfully, set the new profile picture
-        setProfilePic({uri: response.uri});
-      }
+      includeBase64: true,
     });
-  };
-
+    setImageUrl(result.assets?.[0]?.base64 || '');
+  }, [ImageUrl]);
   const handleFirstNameInput = text => {
     // Allow only alphabets (A-Za-z) and remove other characters
     setFirstName(text.replace(/[^A-Za-z]/g, ''));
@@ -190,8 +203,14 @@ const ProfileScreen = () => {
   return (
     <View style={styles.container}>
       {/* Profile Picture */}
-      <TouchableOpacity onPress={handleChooseProfilePic}>
-        <Image source={profilePic} style={styles.profilePic} />
+      <TouchableOpacity onPress={handlePickImage}>
+        <Image
+          source={{
+            uri: `data:image/png;base64,${ImageUrl}`,
+          }}
+          // source={profilePic}
+          style={styles.profilePic}
+        />
       </TouchableOpacity>
 
       {/* First Name */}

@@ -27,7 +27,7 @@ export const stepneyApi = createApi({
       // note: an optional `queryFn` may be used in place of `query`
       query: body => {
         return {
-          url: `/customersignup/`,
+          url: `/mechanicsignup/`,
           method: 'POST',
           body: body,
         };

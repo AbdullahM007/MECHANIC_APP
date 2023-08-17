@@ -27,8 +27,8 @@ const App = () => {
         ) : (
           <SignUpScreen onSignup={() => handleSignUp()} />
         )} */}
-          {/* <HomeNavigator /> */}
-          <RootNavigator />
+          <HomeNavigator />
+          {/* <RootNavigator /> */}
         </Provider>
       </SafeAreaView>
     </NavigationContainer>

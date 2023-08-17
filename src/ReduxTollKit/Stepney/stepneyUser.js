@@ -26,7 +26,6 @@ export const stepneyUserDetailsApi = createApi({
     updateUserProfile: builder.mutation({
       // note: an optional `queryFn` may be used in place of `query`
       query: body => {
-        console.log('ERRRODATE', body);
         return {
           url: `/updatemechanicprofile/`,
           method: 'PUT',
