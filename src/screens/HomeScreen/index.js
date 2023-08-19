@@ -1,239 +1,418 @@
-import {View, Text,Dimensions,Pressable} from 'react-native';
-import React ,{useEffect, useState} from 'react';
-import MapView,{PROVIDER_GOOGLE} from "react-native-maps";
+import {
+  View,
+  Text,
+  Dimensions,
+  Pressable,
+  PermissionsAndroid,
+} from 'react-native';
+import React, {useEffect, useState, useCallback} from 'react';
+import MapView, {PROVIDER_GOOGLE} from 'react-native-maps';
 import MapViewDirections from 'react-native-maps-directions';
 import styles from './styles';
+import messaging from '@react-native-firebase/messaging';
+import PushNotification from 'react-native-push-notification';
+
 import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicon from 'react-native-vector-icons/Ionicons';
-import FontAwesome from  "react-native-vector-icons/FontAwesome";
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import NewOrderPopUp from '../../components/NewOrderPopUp';
-import { useNavigation } from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {useSelector, useDispatch} from 'react-redux';
 
+import Geolocation from '@react-native-community/geolocation';
+import {setLocationaccess, setLocation} from '../../ReduxTollKit/Slices/slice';
 
-const origin = {latitude: 32.239815, longitude: 74.194450};
-const destination = {latitude: 32.187691, longitude: 74.194450};
-const GOOGLE_MAPS_APIKEY='AIzaSyBAo0ueJdL4wZYYrGFFBVbEuziCLDyQhN8'
+const origin = {latitude: 32.239815, longitude: 74.19445};
+const destination = {latitude: 32.187691, longitude: 74.19445};
+const GOOGLE_MAPS_APIKEY = 'AIzaSyBAo0ueJdL4wZYYrGFFBVbEuziCLDyQhN8';
 
-
-
-
-const HomeScreen = (props) => {
-
+const HomeScreen = props => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
+  const location = useSelector(state => state.useData.location);
+  const [granted, setGranted] = useState(false);
 
   // Function to navigate to EarningsScreen
   const navigateToEarningsScreen = () => {
     navigation.navigate('EarningsScreen');
   };
-  const [isOnline,setIsOnline] = useState(false);
+  const [notificationToken, setNotificationToken] = useState('');
+
+  const [isOnline, setIsOnline] = useState(false);
   const [myPosition, setMyPosition] = useState(null);
   const [order, setOrder] = useState(null);
-  const [newOrder,setNewOrder] = useState ( { 
-    id:0,
-    type:'Mechanic',
+  const [newOrder, setNewOrder] = useState({
+    id: 0,
+    type: 'Mechanic',
 
-    originLatitude:32.239803,
-    origeinLongitude:74.149197,
+    originLatitude: 32.239803,
+    origeinLongitude: 74.149197,
 
-    destLatitude:32.244493,
-    destLongitude:74.153164,
+    destLatitude: 32.244493,
+    destLongitude: 74.153164,
 
-    user:{
-      rating:4.8,
-      name:'Hamza',
+    user: {
+      rating: 4.8,
+      name: 'Hamza',
+    },
+  });
+
+  const requestLocationPermission = async () => {
+    try {
+      await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+      );
+      if (PermissionsAndroid.RESULTS.GRANTED) {
+        console.log(
+          'PermissionsAndroid.RESULTS.GRANTED',
+          PermissionsAndroid.RESULTS.GRANTED,
+        );
+        handleListners();
+
+        setGranted(true);
+      } else {
+        setGranted(false);
+        dispatch(setLocationaccess(false));
+        Alert.alert('Location permission denied');
+      }
+    } catch (err) {
+      setGranted(false);
+      dispatch(setLocationaccess(false));
+      // console.warn(err);
+      console.log('Erros', err);
     }
+  };
+  useFocusEffect(
+    React.useCallback(() => {
+      // getLocation();
+      requestLocationPermission();
+    }, []),
+  );
+  useEffect(() => {
+    requestLocationPermission();
+  }, []);
 
-  }  )
+  function getLocation() {
+    Geolocation.getCurrentPosition(
+      position => {
+        // console.log('DATA', position);
+        // dispatch(
+        // setUserLocation({
+        //   lat: position.coords.latitude,
+        //   lon: position.coords.longitude,
+        // }),
+        dispatch(
+          setLocation({
+            lat: position.coords.latitude,
+            lon: position.coords.longitude,
+          }),
+        );
+        // );
+      },
+      error => {
+        // See error code charts below.
 
+        console.error('dfdgdg', error.code, error.message);
+        dispatch(setLocationaccess(false));
+      },
+      {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
+    );
+  }
+  useEffect(() => {
+    if (granted) {
+      getLocation();
+    }
+  }, [granted]);
   const onDecline = () => {
     setNewOrder(null);
-  }
+  };
 
-  const onAccept = (newOrder) => {
+  const onAccept = newOrder => {
     setOrder(newOrder);
     setNewOrder(null);
   };
 
-
-  const onGoPress = () =>{ 
-    setIsOnline (!isOnline); 
-  }
-  const onUserLocationChange=(event) =>{
-   setMyPosition(event.nativeEvent.coordinate);
-  }
-  const onDirectionFound =(event)=>{
-    console.log("Direction found: " , event);
-    if(order) {
+  const onGoPress = () => {
+    setIsOnline(!isOnline);
+  };
+  const onUserLocationChange = event => {
+    setMyPosition(event.nativeEvent.coordinate);
+  };
+  const onDirectionFound = event => {
+    // console.log('Direction found: ', event);
+    if (order) {
       setOrder({
         ...order,
         distance: event.distance,
         duration: event.duration,
         pickedUp: order.pickedUp || event.distance < 0.2,
         isFinished: order.pickedUp && event.distance < 0.2,
-      })
+      });
     }
-  }
-  const getDestination =() =>{
-    if(order &&  order.pickedUp){
-      return{
+  };
+  const getDestination = () => {
+    if (order && order.pickedUp) {
+      return {
         latitude: order.destLatitude,
-            longitude: order.destLongitude,
-      }
+        longitude: order.destLongitude,
+      };
     }
-    return{
-            latitude: order.originLatitude,
-            longitude: order.origeinLongitude,
-           }
-  }
-  
-  
+    return {
+      latitude: order.originLatitude,
+      longitude: order.origeinLongitude,
+    };
+  };
 
   const renderBottomTitle = () => {
     if (order && order.isFinished) {
       return (
-        <View style={{alignItems:'center'}}>
-  
-          <View style={{flexDirection:'row',alignItems:'center',backgroundColor:"#43A047",width:200,height:50,justifyContent:'center' ,padding:15,marginTop:22 }}>
-            
-          <Text style={{color:"white",fontWeight:'bold',fontSize:15}} >Car is Fixed or Towed</Text>
+        <View style={{alignItems: 'center'}}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: '#43A047',
+              width: 200,
+              height: 50,
+              justifyContent: 'center',
+              padding: 15,
+              marginTop: 22,
+            }}>
+            <Text style={{color: 'white', fontWeight: 'bold', fontSize: 15}}>
+              Car is Fixed or Towed
+            </Text>
           </View>
-              <Text style={styles.bottomText}>{order.user.name} 's Car</Text> 
-            
+          <Text style={styles.bottomText}>{order.user.name} 's Car</Text>
         </View>
-      )}
+      );
+    }
     if (order && order.pickedUp) {
       return (
-        <View style={{alignItems:'center'}}>
-  
-          <View style={{flexDirection:'row',alignItems:'center',paddingBottom:15,paddingTop:5 }}>
+        <View style={{alignItems: 'center'}}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingBottom: 15,
+              paddingTop: 5,
+            }}>
             <Text>{order.duration ? order.duration.toFixed(1) : '?'} min </Text>
-          <View style={{backgroundColor:'#f00000',marginHorizontal:10, width:40, height:40,alignItems:'center',justifyContent:'center', borderRadius:20}}>
-              <FontAwesome name={"user"} color={"lightgrey"} size={20}/>
+            <View
+              style={{
+                backgroundColor: '#f00000',
+                marginHorizontal: 10,
+                width: 40,
+                height: 40,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 20,
+              }}>
+              <FontAwesome name={'user'} color={'lightgrey'} size={20} />
+            </View>
+            <Text>{order.distance ? order.distance.toFixed(1) : '?'} Km </Text>
           </View>
-          <Text>{order.distance ? order.distance.toFixed(1) : '?'} Km </Text>
-          </View>
-              <Text style={styles.bottomText}>Fixing or Towing the car {order.user.name} 's Car</Text> 
-            
+          <Text style={styles.bottomText}>
+            Fixing or Towing the car {order.user.name} 's Car
+          </Text>
         </View>
-      )}
+      );
+    }
 
     if (order) {
-    return (
-      <View style={{alignItems:'center'}}>
-
-        <View style={{flexDirection:'row',alignItems:'center',paddingBottom:15,paddingTop:5 }}>
-          <Text>{order.duration ? order.duration.toFixed(1) : '?'} min </Text>
-        <View style={{backgroundColor:'#48d42a',marginHorizontal:10, width:40, height:40,alignItems:'center',justifyContent:'center', borderRadius:20}}>
-            <FontAwesome name={"user"} color={"lightgrey"} size={20}/>
+      return (
+        <View style={{alignItems: 'center'}}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingBottom: 15,
+              paddingTop: 5,
+            }}>
+            <Text>{order.duration ? order.duration.toFixed(1) : '?'} min </Text>
+            <View
+              style={{
+                backgroundColor: '#48d42a',
+                marginHorizontal: 10,
+                width: 40,
+                height: 40,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 20,
+              }}>
+              <FontAwesome name={'user'} color={'lightgrey'} size={20} />
+            </View>
+            <Text>{order.distance ? order.distance.toFixed(1) : '?'} Km </Text>
+          </View>
+          <Text style={styles.bottomText}>
+            Going to Repair {order.user.name} 's Car
+          </Text>
         </View>
-        <Text>{order.distance ? order.distance.toFixed(1) : '?'} Km </Text>
-        </View>
-            <Text style={styles.bottomText}>Going to Repair {order.user.name} 's Car</Text> 
-          
-      </View>
-    )}
+      );
+    }
     if (isOnline) {
-      return ( <Text style={styles.bottomText}>You're Online</Text> 
-      ) }
-    return (<Text style={styles.bottomText}>You're Offline</Text>);
+      return <Text style={styles.bottomText}>You're Online</Text>;
+    }
+    return <Text style={styles.bottomText}>You're Offline</Text>;
+  };
+
+  useEffect(() => {
+    if (!notificationToken) return;
+    SendNotificationstoServer();
+  }, [notificationToken]);
+  const SendNotificationstoServer = useCallback(() => {
+    messaging()
+      .getToken()
+      .then(deviceToken => console.log('deviceToken', deviceToken));
+  }, [notificationToken]);
+  async function handleListners() {
+    await PushNotification.configure({
+      onRegister: function (token) {
+        setNotificationToken(token?.token);
+      },
+      onNotification: function (notification: any) {
+        const idd = notification.data;
+        // dispatch(setShowRedIocn(true));
+        if (notification?.data?.type === 'message') {
+          // dispatch(setShowMessageRedIcon(true));
+        }
+        try {
+          if (notification?.userInteraction) {
+            if (notification?.data?.type === 'message') {
+              navigation.navigate('ChatList');
+            } else {
+              navigation.navigate('IncomingNotifications');
+            }
+            // navigation.navigate("IncomingNotifications")
+          }
+          // else if ()
+        } catch (err) {
+          console.log('error while handling action', err);
+        }
+      },
+    });
+
+    // for foreground msg listner
+    messaging().onMessage(async (remoteMessage: any) => {
+      // console.log('Notification push arrived', remoteMessage);
+      PushNotification.localNotification({
+        channelId: 'custom_sound',
+      });
+    });
+    // app opened from background state
+    messaging().onNotificationOpenedApp(async (remoteMessage: any) => {
+      // console.log('Notification push opened app', remoteMessage);
+    });
+
+    messaging().setBackgroundMessageHandler(async remoteMessage => {
+      // console.log('Notification push setBackgroun', remoteMessage);
+    });
+    messaging()
+      .getInitialNotification()
+      .then(async (remoteMessage: any) => {
+        if (remoteMessage) {
+        }
+      });
   }
-  
+
+  // const pushNoti = async () => {
+  //   const status = await PermissionsAndroid.request(
+  //     PermissionsAndroid.PERMISSIONS.NOTIFICATIONS,
+  //   );
+
+  //   if (status === PermissionsAndroid.RESULTS.GRANTED) {
+  //     // Permission granted, you can call handleListeners here
+  //     handleListners();
+  //   } else {
+  //     // Permission denied or not granted
+  //     console.log('Notification permission denied');
+  //   }
+  // };
+  // useEffect(() => {
+  //   pushNoti();
+  // }, []);
+
   return (
     <View>
-        
       <MapView
-      style={{width:'100%',height:Dimensions.get('window').height - 170}}
-  
-      provider={PROVIDER_GOOGLE}
-      showsUserLocation={true}
-      onUserLocationChange={onUserLocationChange}
-      initialRegion={{
-        latitude: 32.24469,
-        longitude: 74.149092,
-             latitudeDelta: 0.015,
-             longitudeDelta: 0.0121,
-  }}
-  >
-    {order &&(
-     <MapViewDirections
-     origin={myPosition}
-     onReady={onDirectionFound}
-     destination={getDestination()}
-     strokeWidth={5}
-     strokeColor='black'
-     apikey={GOOGLE_MAPS_APIKEY}
-   />
-    )}
+        style={{width: '100%', height: Dimensions.get('window').height - 170}}
+        provider={PROVIDER_GOOGLE}
+        // showsUserLocation={true}
+        onUserLocationChange={onUserLocationChange}
+        initialRegion={{
+          latitude: location.lat,
+          longitude: location.lon,
+          latitudeDelta: 0.015,
+          longitudeDelta: 0.0121,
+        }}>
+        {order && (
+          <MapViewDirections
+            origin={myPosition}
+            onReady={onDirectionFound}
+            destination={getDestination()}
+            strokeWidth={5}
+            strokeColor="black"
+            apikey={GOOGLE_MAPS_APIKEY}
+          />
+        )}
+      </MapView>
 
-  
-  </MapView>
-
- < Pressable onPress={navigateToEarningsScreen} style={[styles.balanceButton]}>
+      <Pressable
+        onPress={navigateToEarningsScreen}
+        style={[styles.balanceButton]}>
         <Text style={styles.balanceText}>
-          <Text style={{ color: 'green' }}>RS</Text>
-          {' '}
-          1000.00
+          <Text style={{color: 'green'}}>RS</Text> 1000.00
         </Text>
       </Pressable>
 
-
-  {/* <Pressable onPress={() => console.warn('Hey') } 
+      {/* <Pressable onPress={() => console.warn('Hey') } 
   style={[styles.roundButton, {top:10,left:10}  ]} >
 
   <Entypo name={"menu"} size={24} color='black' />
 
   </Pressable> */}
 
-  {/* <Pressable onPress={() => console.warn('Hey') } 
+      {/* <Pressable onPress={() => console.warn('Hey') } 
   style={[styles.roundButton, {top:10,right:10}  ]} >
 
   <Entypo name={"menu"} size={24} color='black' />
 
   </Pressable> */}
 
-  {/* <Pressable onPress={() => console.warn('Hey') } 
+      {/* <Pressable onPress={() => console.warn('Hey') } 
   style={[styles.roundButton, {bottom:110,left:10}  ]} >
 
   <Entypo name={"menu"} size={24} color='black' />
 
   </Pressable> */}
 
-  {/* <Pressable onPress={() => console.warn('Hey') } 
+      {/* <Pressable onPress={() => console.warn('Hey') } 
   style={[styles.roundButton, {bottom:110,right:10}  ]} >
 
   <Entypo name={"menu"} size={24} color='black' />
 
   </Pressable> */}
 
-  <Pressable onPress={onGoPress}
-  style={[styles.goButton,  ]} >
+      <Pressable onPress={onGoPress} style={[styles.goButton]}>
+        <Text style={styles.goText}> {isOnline ? 'End' : 'GO'}</Text>
+      </Pressable>
 
-  <Text style={styles.goText}> { isOnline? 'End' : 'GO' }</Text>
+      <View style={styles.bottomContainer}>
+        {/* <Ionicon name={"options"} size={30} color='rgb(255,0,89)' /> */}
 
-  </Pressable>
+        {renderBottomTitle()}
 
-  
+        {/* <Entypo name={"menu"} size={30} color='rgb(255,0,89)'/> */}
+      </View>
 
-
-  <View style={styles.bottomContainer}>
-
-    {/* <Ionicon name={"options"} size={30} color='rgb(255,0,89)' /> */}
-    
-    {renderBottomTitle()}
-
-    {/* <Entypo name={"menu"} size={30} color='rgb(255,0,89)'/> */}
-
-  </View>
-
-  {newOrder && (<NewOrderPopUp 
-  
-     newOrder={newOrder}
-     duration={2}
-    distance={0.2}
-     onDecline={onDecline}
-     onAccept={() => onAccept(newOrder) }
-                        />) }
-
+      {newOrder && (
+        <NewOrderPopUp
+          newOrder={newOrder}
+          duration={2}
+          distance={0.2}
+          onDecline={onDecline}
+          onAccept={() => onAccept(newOrder)}
+        />
+      )}
     </View>
   );
 };

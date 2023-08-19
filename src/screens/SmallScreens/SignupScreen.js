@@ -8,12 +8,14 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {Picker} from '@react-native-picker/picker';
 import {Dropdown} from 'react-native-element-dropdown';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import {useSignUpUserMutation} from '../../ReduxTollKit/Stepney/stepney';
+import {launchImageLibrary} from 'react-native-image-picker';
 
 const SignUpScreen = () => {
   const [firstName, setFirstName] = useState('');
@@ -28,9 +30,12 @@ const SignUpScreen = () => {
   const [city, setCity] = useState('');
   const [value, setValue] = useState(null);
   const [signUpUser, {data, error}] = useSignUpUserMutation();
+  const [front, setFront] = useState('');
+  const [back, setBack] = useState('');
+  const [isfront, setIsfront] = useState(false);
   const navigation = useNavigation();
-
-  console.log('SIGNUPUSER', data, error);
+  console.log();
+  console.log('SIGNUPUSER', data, error, 'front', front);
   const handleSignUp = () => {
     // Add sign-up logic here using APIs, registration, etc.
     // For simplicity, we're not implementing any logic.
@@ -72,6 +77,17 @@ const SignUpScreen = () => {
     // Example: Navigate to HomeScreen after successful sign-up
     // navigation.navigate('LoginScreen.js');
   };
+  const handlePickImage = React.useCallback(async () => {
+    const result = await launchImageLibrary({
+      maxHeight: 200,
+      maxWidth: 200,
+      selectionLimit: 1,
+      mediaType: 'photo',
+      includeBase64: true,
+    });
+    setFront(result.assets?.[0]?.base64 || '');
+    console.log(result);
+  }, [front]);
   const Services = [
     {label: 'Mechanical', value: 'Mechanic'},
     {label: 'Electrical', value: 'Electrician'},
@@ -145,14 +161,14 @@ const SignUpScreen = () => {
           value={confirmPassword}
           onChangeText={text => setConfirmPassword(text)}
         />
-        <TextInput
+        {/* <TextInput
           style={styles.input}
           placeholder="Address"
           placeholderTextColor={'black'}
           // secureTextEntry={true}
           value={address}
           onChangeText={text => setAddress(text)}
-        />
+        /> */}
         <View style={styles.phoneInputContainer}>
           <Dropdown
             style={styles.countryCode}
@@ -239,6 +255,19 @@ const SignUpScreen = () => {
           )}
           renderItem={renderItem}
         />
+        <Text style={styles.simpleText}>Sign Up</Text>
+        {front && (
+          <Image
+            source={{
+              uri: `data:image/png;base64,${front}`,
+            }}
+            // source={profilePic}
+            style={styles.profilePic}
+          />
+        )}
+        <TouchableOpacity onPress={() => handlePickImage()}>
+          <Text style={styles.simpleText}>Sign Up</Text>
+        </TouchableOpacity>
 
         <TouchableOpacity style={styles.signupButton} onPress={handleSignUp}>
           <Text style={styles.buttonText}>Sign Up</Text>
@@ -292,6 +321,11 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontSize: 18,
+    fontWeight: 'bold',
+  },
+  simpleText: {
+    color: 'black',
+    fontSize: 16,
     fontWeight: 'bold',
   },
   phoneInputContainer: {
@@ -377,6 +411,12 @@ const styles = StyleSheet.create({
   inputSearchStyle: {
     height: 40,
     fontSize: 16,
+  },
+  profilePic: {
+    width: 150,
+    height: 150,
+    // borderRadius: 75,
+    marginBottom: 20,
   },
 });
 

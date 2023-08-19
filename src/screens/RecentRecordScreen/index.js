@@ -10,6 +10,8 @@ import {
   Image,
 } from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
+import moment from 'moment';
+
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useGetallOrdersQuery} from '../../ReduxTollKit/Stepney/stepneyUser';
 const RecordScreen = () => {
@@ -127,6 +129,14 @@ const RecordScreen = () => {
           <View style={styles.ratingContainer}>
             <Text style={styles.ratingLabel}>Rating:</Text>
             <View style={styles.starContainer}>{renderStars(item.rating)}</View>
+          </View>
+          <View style={styles.ratingContainer}>
+            <Text style={styles.ratingLabel}>Start Date:</Text>
+            <Text>{moment(item?.created_at).format('DD-MM-YYYY')}</Text>
+          </View>
+          <View style={styles.ratingContainer}>
+            <Text style={styles.ratingLabel}>End Date:</Text>
+            <Text>{moment(item?.updated_at).format('DD-MM-YYYY')}</Text>
           </View>
           <Text
             style={styles.feedbackText}>{`Feedback: ${item.feedback}`}</Text>

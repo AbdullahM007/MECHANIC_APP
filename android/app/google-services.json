@@ -1,0 +1,68 @@
+{
+  "project_info": {
+    "project_number": "826311804041",
+    "project_id": "stepney-84f1c",
+    "storage_bucket": "stepney-84f1c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:826311804041:android:cab16e63770933e7e9b258",
+        "android_client_info": {
+          "package_name": "com.stepney"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "826311804041-5v2peauuss1919mj8ojdvlilll7khh1g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKnSv9Cp6abZ2567EeoByaYFVcOAVhHDE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "826311804041-5v2peauuss1919mj8ojdvlilll7khh1g.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:826311804041:android:c7330abf032c3c01e9b258",
+        "android_client_info": {
+          "package_name": "com.stepneymechanic"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "826311804041-5v2peauuss1919mj8ojdvlilll7khh1g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKnSv9Cp6abZ2567EeoByaYFVcOAVhHDE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "826311804041-5v2peauuss1919mj8ojdvlilll7khh1g.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
