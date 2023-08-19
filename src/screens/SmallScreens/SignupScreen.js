@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   TextInput,
@@ -9,23 +9,31 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  PermissionsAndroid,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import Geolocation from '@react-native-community/geolocation';
+import {useDispatch, useSelector} from 'react-redux';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {Picker} from '@react-native-picker/picker';
 import {Dropdown} from 'react-native-element-dropdown';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import {useSignUpUserMutation} from '../../ReduxTollKit/Stepney/stepney';
 import {launchImageLibrary} from 'react-native-image-picker';
+import {setLocation, setLocationaccess} from '../../ReduxTollKit/Slices/slice';
 
 const SignUpScreen = () => {
+  const dispatch = useDispatch();
   const [firstName, setFirstName] = useState('');
+  const [granted, setGranted] = useState(false);
+  const location = useSelector(state => state.useData.location);
+  console.log('Location: ' + JSON.stringify(location), 'PERMISSIONS', granted);
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [address, setAddress] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [phoneCountryCode, setPhoneCountryCode] = useState('');
+  const [phoneCountryCode, setPhoneCountryCode] = useState('+92');
   const [Service, setService] = useState('');
   const [city, setCity] = useState('');
   const [value, setValue] = useState(null);
@@ -34,8 +42,6 @@ const SignUpScreen = () => {
   const [back, setBack] = useState('');
   const [isfront, setIsfront] = useState(false);
   const navigation = useNavigation();
-  console.log();
-  console.log('SIGNUPUSER', data, error, 'front', front);
   const handleSignUp = () => {
     // Add sign-up logic here using APIs, registration, etc.
     // For simplicity, we're not implementing any logic.
@@ -68,15 +74,16 @@ const SignUpScreen = () => {
       confirm_password: confirmPassword,
       contact: phoneCountryCode + phoneNumber,
       city: city,
-      garage_name: 'LOROY',
       specialization: Service,
-      address: 'address',
-      latitude: '234',
-      longitude: '2464',
+      latitude: location?.lat,
+      longitude: location?.lon,
+      verification_picture1: front,
+      verification_picture2: back,
     });
     // Example: Navigate to HomeScreen after successful sign-up
     // navigation.navigate('LoginScreen.js');
   };
+  console.log('data', data, JSON.stringify(error));
   const handlePickImage = React.useCallback(async () => {
     const result = await launchImageLibrary({
       maxHeight: 200,
@@ -86,8 +93,17 @@ const SignUpScreen = () => {
       includeBase64: true,
     });
     setFront(result.assets?.[0]?.base64 || '');
-    console.log(result);
   }, [front]);
+  const handlePickImageBack = React.useCallback(async () => {
+    const result = await launchImageLibrary({
+      maxHeight: 200,
+      maxWidth: 200,
+      selectionLimit: 1,
+      mediaType: 'photo',
+      includeBase64: true,
+    });
+    setBack(result.assets?.[0]?.base64 || '');
+  }, [back]);
   const Services = [
     {label: 'Mechanical', value: 'Mechanic'},
     {label: 'Electrical', value: 'Electrician'},
@@ -100,6 +116,76 @@ const SignUpScreen = () => {
     {label: 'Gujranwala', value: 'Gujranwala'},
     {label: 'Gujrat', value: 'Gujrat'},
   ];
+
+  const requestLocationPermission = async () => {
+    console.log('TRY');
+    try {
+      await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+      );
+      if (PermissionsAndroid.RESULTS.GRANTED) {
+        console.log(
+          'PermissionsAndroid.RESULTS.GRANTED',
+          PermissionsAndroid.RESULTS.GRANTED,
+        );
+        console.log('PERMISSIONS');
+        setGranted(true);
+      } else {
+        setGranted(false);
+        dispatch(setLocationaccess(false));
+        Alert.alert('Location permission denied');
+      }
+    } catch (err) {
+      setGranted(false);
+      dispatch(setLocationaccess(false));
+      // console.warn(err);
+      console.log('Erros', err);
+    }
+  };
+  useFocusEffect(
+    React.useCallback(() => {
+      // getLocation();
+      requestLocationPermission();
+    }, []),
+  );
+  // useEffect(() => {
+  //   requestLocationPermission();
+  // }, []);
+
+  function getLocation() {
+    Geolocation.getCurrentPosition(
+      position => {
+        // console.log('DATA', position);
+        // dispatch(
+        // setUserLocation({
+        //   lat: position.coords.latitude,
+        //   lon: position.coords.longitude,
+        // }),
+        dispatch(
+          setLocation({
+            lat: position.coords.latitude,
+            lon: position.coords.longitude,
+          }),
+        );
+        // );
+      },
+      error => {
+        // See error code charts below.
+
+        console.error('dfdgdg', error.code, error.message);
+        dispatch(setLocationaccess(false));
+      },
+      {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
+    );
+  }
+  console.log('PERMISSIONS', granted);
+
+  useEffect(() => {
+    if (granted) {
+      getLocation();
+    }
+  }, [granted]);
+
   const CountryCodes = [{label: '(+92)', value: '+92'}];
   const renderItem = item => {
     return (
@@ -116,6 +202,11 @@ const SignUpScreen = () => {
       </View>
     );
   };
+  useEffect(() => {
+    if (data) {
+      navigation.navigate('OTPScreen', {phNo: phoneCountryCode + phoneNumber});
+    }
+  }, [data]);
 
   return (
     <ScrollView
@@ -170,22 +261,22 @@ const SignUpScreen = () => {
           onChangeText={text => setAddress(text)}
         /> */}
         <View style={styles.phoneInputContainer}>
-          <Dropdown
+          <TextInput
             style={styles.countryCode}
-            placeholderStyle={styles.placeholderStyle}
-            selectedTextStyle={styles.selectedTextStyle}
-            inputSearchStyle={styles.inputSearchStyle}
-            data={CountryCodes}
+            // placeholderStyle={styles.placeholderStyle}
+            // selectedTextStyle={styles.selectedTextStyle}
+            // inputSearchStyle={styles.inputSearchStyle}
+            // data={'+92'}
             maxHeight={300}
             labelField="label"
-            valueField="value"
-            placeholder="Select Country code"
-            placeholderTextColor="black"
+            // valueField="value"
+            // placeholder="Select Country code"
+            // placeholderTextColor="black"
             value={phoneCountryCode}
-            onChange={item => {
-              setPhoneCountryCode(item.value);
-            }}
-            renderItem={renderItem}
+            // onChange={item => {
+            //   setPhoneCountryCode(item.value);
+            // }}
+            // renderItem={renderItem}
           />
 
           <TextInput
@@ -255,7 +346,13 @@ const SignUpScreen = () => {
           )}
           renderItem={renderItem}
         />
-        <Text style={styles.simpleText}>Sign Up</Text>
+        <TouchableOpacity
+          style={styles.picUpload}
+          onPress={() => {
+            handlePickImage();
+          }}>
+          <Text style={styles.simpleText}>Upload Front CNIC</Text>
+        </TouchableOpacity>
         {front && (
           <Image
             source={{
@@ -265,11 +362,27 @@ const SignUpScreen = () => {
             style={styles.profilePic}
           />
         )}
-        <TouchableOpacity onPress={() => handlePickImage()}>
-          <Text style={styles.simpleText}>Sign Up</Text>
-        </TouchableOpacity>
 
-        <TouchableOpacity style={styles.signupButton} onPress={handleSignUp}>
+        <TouchableOpacity
+          style={styles.picUpload}
+          onPress={() => {
+            handlePickImageBack();
+          }}>
+          <Text style={styles.simpleText}>Upload Back CNIC</Text>
+        </TouchableOpacity>
+        {back && (
+          <Image
+            source={{
+              uri: `data:image/png;base64,${back}`,
+            }}
+            // source={profilePic}
+            style={styles.profilePic}
+          />
+        )}
+
+        <TouchableOpacity
+          style={styles.signupButton}
+          onPress={() => handleSignUp()}>
           <Text style={styles.buttonText}>Sign Up</Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -413,10 +526,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   profilePic: {
-    width: 150,
-    height: 150,
-    // borderRadius: 75,
+    width: '80%',
+    height: 100,
+    borderRadius: 10,
+    marginLeft: 30,
+    alignSelf: 'flex-start',
     marginBottom: 20,
+  },
+  picUpload: {
+    width: '80%',
+    backgroundColor: 'lightblue',
+    alignItems: 'center',
+    marginVertical: 12,
+    padding: 10,
+    borderRadius: 10,
   },
 });
 

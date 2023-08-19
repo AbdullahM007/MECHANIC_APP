@@ -6,6 +6,8 @@ import {createStackNavigator} from '@react-navigation/stack';
 import LoginScreen from '../../screens/SmallScreens/LoginScreen';
 import SignUpScreen from '../../screens/SmallScreens/SignupScreen';
 import EarningsScreen from '../../screens/HomeScreen/EarningsScreen';
+import OTPScreen from '../../screens/SmallScreens/OtpScreen';
+import ForgotScreen from '../../screens/SmallScreens/ForgotScreen';
 
 const Stack = createStackNavigator();
 const HomeNavigator = props => {
@@ -17,6 +19,8 @@ const HomeNavigator = props => {
       {/* <Stack.Screen name={'Home'} component={HomeScreen} /> */}
       <Stack.Screen name={'LoginScreen'} component={LoginScreen} />
       <Stack.Screen name={'SignUpScreen'} component={SignUpScreen} />
+      <Stack.Screen name={'OTPScreen'} component={OTPScreen} />
+      <Stack.Screen name={'ForgotScreen'} component={ForgotScreen} />
       <Stack.Screen name={'EarningsScreen'} component={EarningsScreen} />
     </Stack.Navigator>
   );

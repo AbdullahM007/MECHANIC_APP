@@ -12,8 +12,8 @@ export const stepneyApi = createApi({
       // const token = getState().auth.token;
       // const token = await getStorageData('userToken');
 
-      const token =
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjkyOTg4OTc5LCJpYXQiOjE2OTIxMjQ5NzksImp0aSI6Ijc2NmJkOWZmZTczNTRjZTliMDgzNWI4ZWUzYjE2MWZiIiwidXNlcl9pZCI6OH0.n9dR2RN0aB1G-H2baTHSeqU8izu1i6nty-HHpf2WdyA'; // await getStorageData('userToken');
+      const token = '';
+      // 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjkyOTg4OTc5LCJpYXQiOjE2OTIxMjQ5NzksImp0aSI6Ijc2NmJkOWZmZTczNTRjZTliMDgzNWI4ZWUzYjE2MWZiIiwidXNlcl9pZCI6OH0.n9dR2RN0aB1G-H2baTHSeqU8izu1i6nty-HHpf2WdyA'; // await getStorageData('userToken');
       console.log('token', token);
       if (token) {
         headers.set('Authorization', `Bearer ${token}`);
@@ -26,6 +26,7 @@ export const stepneyApi = createApi({
     signUpUser: builder.mutation({
       // note: an optional `queryFn` may be used in place of `query`
       query: body => {
+        console.log('BODY', body);
         return {
           url: `/mechanicsignup/`,
           method: 'POST',
@@ -37,7 +38,7 @@ export const stepneyApi = createApi({
       // note: an optional `queryFn` may be used in place of `query`
       query: body => {
         return {
-          url: `/customersignup/`,
+          url: `/mechanicsignup/`,
           method: 'PUT',
           body: body,
         };

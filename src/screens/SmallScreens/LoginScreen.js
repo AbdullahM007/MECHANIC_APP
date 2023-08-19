@@ -52,7 +52,7 @@ const LoginScreen = () => {
   const handleForgotPassword = () => {
     // Add navigation logic for the Forgot Password screen here.
     // For example, you can navigate to a "ForgotPassword" screen.
-    navigation.navigate('Forgot');
+    navigation.navigate('ForgotScreen');
   };
   console.log('sdkjfksd', JSON.stringify(data), error);
   return (
