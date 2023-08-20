@@ -1,13 +1,13 @@
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import HomeNavigator from './Drawer';
-import HomeScreen from '../../screens/HomeScreen';
 import {createMaterialBottomTabNavigator} from '@react-navigation/material-bottom-tabs';
 import ProfileScreen from '../../screens/ProfileScreen';
 import SettingScreen from '../../screens/SettingScreen';
 import RecordScreen from '../../screens/RecentRecordScreen';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Feather from 'react-native-vector-icons/Feather';
+import HomeScreen from '../../screens/HomeScreen/index';
 
 const BottomTab = createMaterialBottomTabNavigator();
 
@@ -22,7 +22,7 @@ const RootNavigator = () => {
       labeled={true}>
       <BottomTab.Screen
         name="Home"
-        component={HomeNavigator} // Use the HomeNavigator component here
+        component={HomeScreen} // Use the HomeNavigator component here
         options={{
           tabBarLabel: 'Home',
           tabBarIcon: ({color}) => (

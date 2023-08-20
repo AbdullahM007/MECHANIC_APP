@@ -11,14 +11,14 @@ import MapViewDirections from 'react-native-maps-directions';
 import styles from './styles';
 import messaging from '@react-native-firebase/messaging';
 import PushNotification from 'react-native-push-notification';
-
+import {useSetDeviceTokenMutation} from '../../ReduxTollKit/Stepney/stepneyUser';
 import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicon from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import NewOrderPopUp from '../../components/NewOrderPopUp';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {useSelector, useDispatch} from 'react-redux';
-
+import {useUserStatusMutation} from '../../ReduxTollKit/Stepney/stepney';
 import Geolocation from '@react-native-community/geolocation';
 import {setLocationaccess, setLocation} from '../../ReduxTollKit/Slices/slice';
 
@@ -29,10 +29,14 @@ const GOOGLE_MAPS_APIKEY = 'AIzaSyBAo0ueJdL4wZYYrGFFBVbEuziCLDyQhN8';
 const HomeScreen = props => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const [setDeviceToken, {data: setdeviceToken, error, TokenError}] =
+    useSetDeviceTokenMutation();
+  const [userStatus, {data: userStatue, error: isErros}] =
+    useUserStatusMutation();
+  console.log('userStatue', userStatue, isErros);
   const location = useSelector(state => state.useData.location);
+  const UserId = useSelector(state => state.useData.userId);
   const [granted, setGranted] = useState(false);
-
-  // Function to navigate to EarningsScreen
   const navigateToEarningsScreen = () => {
     navigation.navigate('EarningsScreen');
   };
@@ -133,6 +137,7 @@ const HomeScreen = props => {
   };
 
   const onGoPress = () => {
+    userStatus({id: parseInt(UserId)});
     setIsOnline(!isOnline);
   };
   const onUserLocationChange = event => {
@@ -262,7 +267,12 @@ const HomeScreen = props => {
   const SendNotificationstoServer = useCallback(() => {
     messaging()
       .getToken()
-      .then(deviceToken => console.log('deviceToken', deviceToken));
+      .then(deviceToken =>
+        setDeviceToken({
+          id: UserId,
+          device_token: deviceToken,
+        }),
+      );
   }, [notificationToken]);
   async function handleListners() {
     await PushNotification.configure({
@@ -336,7 +346,7 @@ const HomeScreen = props => {
       <MapView
         style={{width: '100%', height: Dimensions.get('window').height - 170}}
         provider={PROVIDER_GOOGLE}
-        // showsUserLocation={true}
+        showsUserLocation={true}
         onUserLocationChange={onUserLocationChange}
         initialRegion={{
           latitude: location.lat,

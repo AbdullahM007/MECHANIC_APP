@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -7,41 +7,40 @@ import {
   Image,
   StyleSheet,
 } from 'react-native';
+import {useGetUserProfileQuery} from '../../ReduxTollKit/Stepney/stepneyUser';
 import {Dropdown} from 'react-native-element-dropdown';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 // import ImagePicker from 'react-native-image-picker';
 import {useUpdateUserProfileMutation} from '../../ReduxTollKit/Stepney/stepneyUser';
 import {launchImageLibrary} from 'react-native-image-picker';
+import {ScrollView} from 'react-native-gesture-handler';
 
 const ProfileScreen = () => {
   // Replace these sample data with the actual user data
-  const [userData, setUserData] = useState({
-    firstName: 'Abdullah',
-    lastName: 'Mushtaq',
-    phoneNumber: '123-456-7890',
-    email: 'abdullah@uog.com',
-    city: '',
-    serviceName: '',
-    profilePic: require('../../assets/Images/mine.jpg.jpg'), // Provide a default profile picture
-  });
+  // const [userData, setUserData] = useState({
+  //   firstName: currentUser?.first_name,
+  //   lastName: currentUser?.last_name,
+  //   phoneNumber: currentUser?.contact,
+  //   email: currentUser?.email,
+  //   city: currentUser?.city,
+  //   serviceName: currentUser?.specialization,
+  //   profilePic: require('../../assets/Images/mine.jpg.jpg'), // Provide a default profile picture
+  // });
   const [updateUserProfile, {data, error, isLoading}] =
     useUpdateUserProfileMutation();
+  const {
+    data: ProfileData,
+    error: ProfileError,
+    isLoading: dataLoading,
+  } = useGetUserProfileQuery(null);
   // State variables to store updated data
-  const [garage_name, setgarage_name] = useState('');
-  const [firstName, setFirstName] = useState(userData.firstName);
-  const [lastName, setLastName] = useState(userData.lastName);
-  const [phoneCountryCode, setPhoneCountryCode] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState(userData.phoneNumber);
-  const [email, setEmail] = useState(userData.email);
-  const [city, setCity] = useState(userData.city);
-  const [Service, setService] = useState('');
-  const [profilePic, setProfilePic] = useState(userData.profilePic);
+  console.log('data', data, 'error', JSON.stringify(error));
+
   const [value, setValue] = useState(null);
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState('');
   const [verificationStatus, setVerificationStatus] = useState('');
   const [otpVerified, setOtpVerified] = useState(false);
-
   const CountryCodes = [{label: '(+92)', value: '+92'}];
   const Cities = [
     {label: 'Lahore', value: 'Lahore'},
@@ -71,6 +70,25 @@ const ProfileScreen = () => {
       </View>
     );
   };
+  const [firstName, setFirstName] = useState(ProfileData?.first_name);
+  const [lastName, setLastName] = useState(ProfileData?.last_name);
+  const [phoneCountryCode, setPhoneCountryCode] = useState('+92');
+  const [phoneNumber, setPhoneNumber] = useState(ProfileData?.contact.slice(1));
+  const [email, setEmail] = useState(ProfileData?.email);
+  const [city, setCity] = useState(ProfileData?.city);
+  const [Service, setService] = useState(ProfileData?.specialization);
+  const [profilePic, setProfilePic] = useState(ProfileData?.first_name);
+  useEffect(() => {
+    if (ProfileData || data) {
+      setFirstName(ProfileData?.first_name);
+      setLastName(ProfileData?.last_name);
+      setPhoneNumber(ProfileData?.contact.slice(0));
+      setEmail(ProfileData?.email);
+      setService(ProfileData?.specialization);
+      setCity(ProfileData?.city);
+      setProfilePic(ProfileData?.profile_picture);
+    }
+  }, [ProfileData, data]);
 
   // Function to handle profile update
   const handleProfileUpdate = () => {
@@ -78,7 +96,7 @@ const ProfileScreen = () => {
       firstName.trim() === '' ||
       lastName.trim() === '' ||
       phoneNumber.trim() === '' ||
-      email.trim() === '' ||
+      // email.trim() === '' ||
       city.trim() === '' ||
       Service.trim() === ''
     ) {
@@ -89,27 +107,26 @@ const ProfileScreen = () => {
 
     // Implement your logic to update the user data using API or other methods
     // For this example, we'll just update the state
-    setUserData({
-      firstName,
-      lastName,
-      phoneNumber,
-      email,
-      city,
-      serviceName: Service,
-      profilePic,
-    });
+    // setUserData({
+    //   firstName,
+    //   lastName,
+    //   phoneNumber,
+    //   email,
+    //   city,
+    //   serviceName: Service,
+    //   profilePic,
+    // });
     updateUserProfile({
       first_name: firstName,
       last_name: lastName,
       contact: phoneNumber,
       city: city,
-      address: city,
-      garage_name: garage_name,
       specialization: Service,
+      profile_picture: ImageUrl,
     });
     alert('Profile updated successfully!');
   };
-  console.log('Data,', data, error);
+  // console.log('Data,', data, error);
   // Function to handle profile picture selection
   // const handleChooseProfilePic = () => {
   //   const options = {
@@ -142,13 +159,13 @@ const ProfileScreen = () => {
       mediaType: 'photo',
       includeBase64: true,
     });
-    setImageUrl(result.assets?.[0]?.base64 || '');
+    setProfilePic(result.assets?.[0]?.base64 || '');
   }, [ImageUrl]);
   const handleFirstNameInput = text => {
     // Allow only alphabets (A-Za-z) and remove other characters
     setFirstName(text.replace(/[^A-Za-z]/g, ''));
   };
-
+  console.log(firstName);
   // Function to handle last name input
   const handleLastNameInput = text => {
     // Allow only alphabets (A-Za-z) and remove other characters
@@ -199,186 +216,176 @@ const ProfileScreen = () => {
       setVerificationStatus('Incorrect OTP. Please try again.');
     }
   };
-
+  console.log('First', firstName, ProfileData?.first_name);
   return (
     <View style={styles.container}>
-      {/* Profile Picture */}
-      <TouchableOpacity onPress={handlePickImage}>
-        <Image
-          source={{
-            uri: `data:image/png;base64,${ImageUrl}`,
-          }}
-          // source={profilePic}
-          style={styles.profilePic}
-        />
-      </TouchableOpacity>
-
-      {/* First Name */}
-
-      <TextInput
-        style={styles.input}
-        value={firstName}
-        onChangeText={handleFirstNameInput}
-        placeholder="First Name"
-        placeholderTextColor="black"
-      />
-
-      {/* Last Name */}
-      <TextInput
-        style={styles.input}
-        value={lastName}
-        onChangeText={handleLastNameInput}
-        placeholder="Last Name"
-        placeholderTextColor="black"
-      />
-      <TextInput
-        style={styles.input}
-        value={garage_name}
-        onChangeText={value => setgarage_name(value)}
-        placeholder="Garage Name"
-        placeholderTextColor="black"
-      />
-      <View style={styles.phoneInputContainer}>
-        {/* Phone Number */}
-        <Dropdown
-          style={styles.countryCode}
-          placeholderStyle={styles.placeholderStyle}
-          selectedTextStyle={styles.selectedTextStyle}
-          inputSearchStyle={styles.inputSearchStyle}
-          data={CountryCodes}
-          maxHeight={300}
-          labelField="label"
-          valueField="value"
-          placeholder="Country code"
-          placeholderTextColor="black"
-          value={phoneCountryCode}
-          onChange={item => {
-            setPhoneCountryCode(item.value);
-          }}
-          renderItem={renderItem}
-        />
-        <View style={styles.phoneVerifyContainer}>
-          <TextInput
-            style={styles.phoneNumber}
-            placeholder="Phone Number"
-            placeholderTextColor={'black'}
-            value={phoneNumber}
-            onChangeText={handlePhoneNumberInput}
-            keyboardType="phone-pad"
+      <ScrollView>
+        {/* Profile Picture */}
+        <TouchableOpacity onPress={() => handlePickImage()}>
+          <Image
+            source={{
+              uri: `data:image/png;base64,${profilePic}`,
+            }}
+            // source={profilePic}
+            style={styles.profilePic}
           />
-          {/* Verify Button for sending OTP */}
-          <TouchableOpacity style={styles.verifyButton} onPress={handleSendOTP}>
-            <Text style={styles.verifyButtonText}>Verify</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* OTP Input */}
-      {otpSent && !otpVerified && (
-        <View style={styles.otpContainer}>
-          <View style={styles.otpInputContainer}>
+        </TouchableOpacity>
+        {/* First Name */}
+        {dataLoading === false && ProfileData && (
+          <View>
             <TextInput
-              style={styles.otpInput}
-              placeholder="Enter OTP"
-              value={otp}
-              onChangeText={setOtp}
-              keyboardType="numeric"
+              style={styles.input}
+              value={firstName}
+              onChangeText={handleFirstNameInput}
+              placeholder="First Name"
               placeholderTextColor="black"
             />
-            {/* Verify OTP Button */}
+            {/* Last Name */}
+            <TextInput
+              style={styles.input}
+              value={lastName}
+              onChangeText={handleLastNameInput}
+              placeholder="Last Name"
+              placeholderTextColor="black"
+            />
+            <View style={styles.phoneInputContainer}>
+              {/* Phone Number */}
+              <Dropdown
+                style={styles.countryCode}
+                placeholderStyle={styles.placeholderStyle}
+                selectedTextStyle={styles.selectedTextStyle}
+                inputSearchStyle={styles.inputSearchStyle}
+                data={CountryCodes}
+                maxHeight={300}
+                labelField="label"
+                valueField="value"
+                placeholder="Country code"
+                placeholderTextColor="black"
+                value={phoneCountryCode}
+                onChange={item => {
+                  setPhoneCountryCode(item.value);
+                }}
+                renderItem={renderItem}
+              />
+              <View style={styles.phoneVerifyContainer}>
+                <TextInput
+                  style={styles.phoneNumber}
+                  placeholder="Phone Number"
+                  placeholderTextColor={'black'}
+                  value={phoneNumber}
+                  onChangeText={handlePhoneNumberInput}
+                  keyboardType="phone-pad"
+                />
+                {/* Verify Button for sending OTP */}
+                {/* <TouchableOpacity style={styles.verifyButton} onPress={handleSendOTP}>
+            <Text style={styles.verifyButtonText}>Verify</Text>
+          </TouchableOpacity> */}
+              </View>
+            </View>
+            {/* OTP Input */}
+            {otpSent && !otpVerified && (
+              <View style={styles.otpContainer}>
+                <View style={styles.otpInputContainer}>
+                  <TextInput
+                    style={styles.otpInput}
+                    placeholder="Enter OTP"
+                    value={otp}
+                    onChangeText={setOtp}
+                    keyboardType="numeric"
+                    placeholderTextColor="black"
+                  />
+                  {/* Verify OTP Button */}
+                  <TouchableOpacity
+                    style={styles.verifyOtpButton}
+                    onPress={handleVerifyOTP}>
+                    <Text style={styles.verifyButtonText}>Verify OTP</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+            {/* Verification Status */}
+            <Text
+              style={[
+                styles.verificationStatus,
+                otpVerified ? styles.verificationSuccess : null,
+              ]}>
+              {verificationStatus}
+            </Text>
+            {/* Email */}
+            <TextInput
+              style={styles.input}
+              value={email}
+              // onChangeText={setEmail}
+              placeholder="Email"
+              keyboardType="email-address"
+              placeholderTextColor="black" // Set placeholder text color to black
+            />
+            {/* City */}
+            <Dropdown
+              style={styles.dropdown}
+              placeholderStyle={styles.placeholderStyle}
+              selectedTextStyle={styles.selectedTextStyle}
+              inputSearchStyle={styles.inputSearchStyle}
+              data={Cities}
+              search
+              maxHeight={300}
+              labelField="label"
+              valueField="value"
+              placeholder="Select City"
+              searchPlaceholder="Search..."
+              placeholderTextColor="black"
+              value={city}
+              onChange={item => {
+                setCity(item.value);
+              }}
+              renderLeftIcon={() => (
+                <AntDesign
+                  style={styles.icon}
+                  color="black"
+                  name="Safety"
+                  size={20}
+                />
+              )}
+              renderItem={renderItem}
+            />
+            {/* Service Name */}
+            <Dropdown
+              style={styles.dropdown}
+              placeholderStyle={styles.placeholderStyle}
+              selectedTextStyle={styles.selectedTextStyle}
+              inputSearchStyle={styles.inputSearchStyle}
+              // iconStyle={styles.iconStyle}
+              data={Services}
+              search
+              maxHeight={300}
+              labelField="label"
+              valueField="value"
+              placeholder="Select Service you can provide"
+              searchPlaceholder="Search..."
+              placeholderTextColor="black"
+              value={Service}
+              onChange={item => {
+                setService(item.value);
+              }}
+              renderLeftIcon={() => (
+                <AntDesign
+                  style={styles.icon}
+                  color="black"
+                  name="Safety"
+                  size={20}
+                />
+              )}
+              renderItem={renderItem}
+            />
+            {/* Update Button */}
             <TouchableOpacity
-              style={styles.verifyOtpButton}
-              onPress={handleVerifyOTP}>
-              <Text style={styles.verifyButtonText}>Verify OTP</Text>
+              style={styles.updateButton}
+              onPress={handleProfileUpdate}>
+              <Text style={styles.buttonText}>Update Profile</Text>
             </TouchableOpacity>
           </View>
-        </View>
-      )}
-
-      {/* Verification Status */}
-      <Text
-        style={[
-          styles.verificationStatus,
-          otpVerified ? styles.verificationSuccess : null,
-        ]}>
-        {verificationStatus}
-      </Text>
-
-      {/* Email */}
-      <TextInput
-        style={styles.input}
-        value={email}
-        onChangeText={setEmail}
-        placeholder="Email"
-        keyboardType="email-address"
-        placeholderTextColor="black" // Set placeholder text color to black
-      />
-
-      {/* City */}
-      <Dropdown
-        style={styles.dropdown}
-        placeholderStyle={styles.placeholderStyle}
-        selectedTextStyle={styles.selectedTextStyle}
-        inputSearchStyle={styles.inputSearchStyle}
-        data={Cities}
-        search
-        maxHeight={300}
-        labelField="label"
-        valueField="value"
-        placeholder="Select City"
-        searchPlaceholder="Search..."
-        placeholderTextColor="black"
-        value={city}
-        onChange={item => {
-          setCity(item.value);
-        }}
-        renderLeftIcon={() => (
-          <AntDesign
-            style={styles.icon}
-            color="black"
-            name="Safety"
-            size={20}
-          />
         )}
-        renderItem={renderItem}
-      />
-
-      {/* Service Name */}
-      <Dropdown
-        style={styles.dropdown}
-        placeholderStyle={styles.placeholderStyle}
-        selectedTextStyle={styles.selectedTextStyle}
-        inputSearchStyle={styles.inputSearchStyle}
-        // iconStyle={styles.iconStyle}
-        data={Services}
-        search
-        maxHeight={300}
-        labelField="label"
-        valueField="value"
-        placeholder="Select Service you can provide"
-        searchPlaceholder="Search..."
-        placeholderTextColor="black"
-        value={Service}
-        onChange={item => {
-          setService(item.value);
-        }}
-        renderLeftIcon={() => (
-          <AntDesign
-            style={styles.icon}
-            color="black"
-            name="Safety"
-            size={20}
-          />
-        )}
-        renderItem={renderItem}
-      />
-
-      {/* Update Button */}
-      <TouchableOpacity
-        style={styles.updateButton}
-        onPress={handleProfileUpdate}>
-        <Text style={styles.buttonText}>Update Profile</Text>
-      </TouchableOpacity>
+      </ScrollView>
     </View>
   );
 };
@@ -393,6 +400,7 @@ const styles = StyleSheet.create({
   profilePic: {
     width: 150,
     height: 150,
+    alignSelf: 'center',
     borderRadius: 75,
     marginBottom: 20,
   },
@@ -408,6 +416,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
   },
   updateButton: {
+    width: '60%',
+    alignSelf: 'center',
     backgroundColor: 'white',
     paddingVertical: 12,
     paddingHorizontal: 30,

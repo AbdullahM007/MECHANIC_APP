@@ -17,14 +17,13 @@ import {useGetallOrdersQuery} from '../../ReduxTollKit/Stepney/stepneyUser';
 const RecordScreen = () => {
   const {data, error, isLoading} = useGetallOrdersQuery();
   // Sample data for recent rides
-  console.log('DATA', JSON.stringify(data), error, isLoading);
   const [recents, setRecents] = React.useState();
   React.useEffect(() => {
     if (data) {
       setRecents(data?.orders);
     }
   }, [data]);
-
+  console.log('data', JSON.stringify(data));
   const [recentRides, setRecentRides] = useState([
     {
       id: '1',
@@ -131,13 +130,13 @@ const RecordScreen = () => {
             <View style={styles.starContainer}>{renderStars(item.rating)}</View>
           </View>
           <View style={styles.ratingContainer}>
-            <Text style={styles.ratingLabel}>Start Date:</Text>
+            <Text style={styles.ratingLabel}>Order Date:</Text>
             <Text>{moment(item?.created_at).format('DD-MM-YYYY')}</Text>
           </View>
-          <View style={styles.ratingContainer}>
+          {/* <View style={styles.ratingContainer}>
             <Text style={styles.ratingLabel}>End Date:</Text>
             <Text>{moment(item?.updated_at).format('DD-MM-YYYY')}</Text>
-          </View>
+          </View> */}
           <Text
             style={styles.feedbackText}>{`Feedback: ${item.feedback}`}</Text>
         </Animated.View>
