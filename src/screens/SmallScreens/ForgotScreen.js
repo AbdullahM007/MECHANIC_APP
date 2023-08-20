@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
   emailInput: {
     flex: 1,
     height: 40,
-
+    color:'black',
     paddingHorizontal: 10,
   },
   verifyButton: {
@@ -143,6 +143,7 @@ const styles = StyleSheet.create({
   input: {
     width: '90%',
     height: 40,
+    color:'black',
     borderRadius: 10,
     borderColor: '#ccc',
     borderWidth: 1,

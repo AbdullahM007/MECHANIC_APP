@@ -55,7 +55,10 @@ const SignUpScreen = () => {
       !confirmPassword ||
       !phoneNumber ||
       !phoneCountryCode ||
-      !city
+      !Service ||
+      !city ||
+      !front ||
+      !back
     ) {
       alert('Please fill in all the fields.');
       return;
@@ -269,6 +272,7 @@ const SignUpScreen = () => {
             // data={'+92'}
             maxHeight={300}
             labelField="label"
+            placeholderTextColor={'black'}
             // valueField="value"
             // placeholder="Select Country code"
             // placeholderTextColor="black"
@@ -407,6 +411,7 @@ const styles = StyleSheet.create({
   input: {
     width: '80%',
     height: 40,
+    color:'black',
     borderColor: '#ccc',
     borderWidth: 1,
     borderRadius: 10,
@@ -451,6 +456,7 @@ const styles = StyleSheet.create({
   countryCode: {
     width: '25%',
     borderRadius: 10,
+    color:'black',
 
     height: 40,
     borderColor: '#ccc',
