@@ -28,6 +28,12 @@ const ProfileScreen = () => {
   // });
   const [updateUserProfile, {data, error, isLoading}] =
     useUpdateUserProfileMutation();
+  useEffect(() => {
+    if (data) {
+      alert('Profile updated successfully!');
+    }
+  }, [data]);
+
   const {
     data: ProfileData,
     error: ProfileError,
@@ -124,7 +130,6 @@ const ProfileScreen = () => {
       specialization: Service,
       profile_picture: ImageUrl,
     });
-    alert('Profile updated successfully!');
   };
   // console.log('Data,', data, error);
   // Function to handle profile picture selection

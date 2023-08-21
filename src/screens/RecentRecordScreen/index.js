@@ -124,7 +124,7 @@ const RecordScreen = () => {
           <Text
             style={styles.locationText}>{`From: ${item.startLocation}`}</Text>
           <Text style={styles.locationText}>{`To: ${item.endLocation}`}</Text>
-          <Text style={styles.fareText}>{`Fare: ${item.fare}`}</Text>
+          <Text style={styles.fareText}>{`Status: ${item.status}`}</Text>
           <View style={styles.ratingContainer}>
             <Text style={styles.ratingLabel}>Rating:</Text>
             <View style={styles.starContainer}>{renderStars(item.rating)}</View>

@@ -4,6 +4,8 @@ import {
   Dimensions,
   Pressable,
   PermissionsAndroid,
+  Alert,
+  Modal,
 } from 'react-native';
 import React, {useEffect, useState, useCallback} from 'react';
 import MapView, {PROVIDER_GOOGLE} from 'react-native-maps';
@@ -11,11 +13,15 @@ import MapViewDirections from 'react-native-maps-directions';
 import styles from './styles';
 import messaging from '@react-native-firebase/messaging';
 import PushNotification from 'react-native-push-notification';
-import {useSetDeviceTokenMutation} from '../../ReduxTollKit/Stepney/stepneyUser';
+import {
+  useOrderResponceMutation,
+  useSetDeviceTokenMutation,
+} from '../../ReduxTollKit/Stepney/stepneyUser';
 import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicon from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import NewOrderPopUp from '../../components/NewOrderPopUp';
+import {useGetallOrdersQuery} from '../../ReduxTollKit/Stepney/stepneyUser';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {useSelector, useDispatch} from 'react-redux';
 import {useUserStatusMutation} from '../../ReduxTollKit/Stepney/stepney';
@@ -33,7 +39,11 @@ const HomeScreen = props => {
     useSetDeviceTokenMutation();
   const [userStatus, {data: userStatue, error: isErros}] =
     useUserStatusMutation();
-  console.log('userStatue', userStatue, isErros);
+  const {data: allOrder, error: orderError} = useGetallOrdersQuery();
+  // console.log(JSON.stringify(allOrder), orderError);
+  const [modalVisible, setModalVisible] = useState(false);
+
+  // console.log('userStatue', userStatue, isErros);
   const location = useSelector(state => state.useData.location);
   const UserId = useSelector(state => state.useData.userId);
   const [granted, setGranted] = useState(false);
@@ -41,7 +51,11 @@ const HomeScreen = props => {
     navigation.navigate('EarningsScreen');
   };
   const [notificationToken, setNotificationToken] = useState('');
-
+  const [
+    orderResponce,
+    {data: responseData, error: responceError, isLoading: responceLoading},
+  ] = useOrderResponceMutation();
+  // console.log('responseData', responseData, responceError, responceLoading);
   const [isOnline, setIsOnline] = useState(false);
   const [myPosition, setMyPosition] = useState(null);
   const [order, setOrder] = useState(null);
@@ -60,7 +74,45 @@ const HomeScreen = props => {
       name: 'Hamza',
     },
   });
-
+  const handleReject = item => {
+    orderResponce({
+      customer_id: item?.customer,
+      mechanic_id: UserId,
+      mechanic_response: false,
+    });
+  };
+  const handleAccept = item => {
+    console.log(item);
+    orderResponce({
+      customer_id: 15,
+      mechanic_id: UserId,
+      mechanic_response: true,
+    });
+  };
+  useEffect(() => {
+    // Iterate through the orders
+    if (allOrder) {
+      allOrder.orders.forEach(order => {
+        if (order.status === 'pending' && responceLoading === false) {
+          Alert.alert(
+            'Confirm Action',
+            'Do you want to accept or reject this order?',
+            [
+              {
+                text: 'Reject',
+                style: 'destructive',
+                onPress: () => handleReject(order),
+              },
+              {
+                text: 'Accept',
+                onPress: () => handleAccept(order),
+              },
+            ],
+          );
+        }
+      });
+    }
+  }, [allOrder]);
   const requestLocationPermission = async () => {
     try {
       await PermissionsAndroid.request(
@@ -128,10 +180,20 @@ const HomeScreen = props => {
     }
   }, [granted]);
   const onDecline = () => {
+    orderResponce({
+      customer_id: 7,
+      mechanic_id: UserId,
+      mechanic_response: true,
+    });
     setNewOrder(null);
   };
 
   const onAccept = newOrder => {
+    orderResponce({
+      customer_id: 7,
+      mechanic_id: UserId,
+      mechanic_response: true,
+    });
     setOrder(newOrder);
     setNewOrder(null);
   };
@@ -413,7 +475,7 @@ const HomeScreen = props => {
 
         {/* <Entypo name={"menu"} size={30} color='rgb(255,0,89)'/> */}
       </View>
-
+      {/* 
       {newOrder && (
         <NewOrderPopUp
           newOrder={newOrder}
@@ -422,7 +484,7 @@ const HomeScreen = props => {
           onDecline={onDecline}
           onAccept={() => onAccept(newOrder)}
         />
-      )}
+      )} */}
     </View>
   );
 };
