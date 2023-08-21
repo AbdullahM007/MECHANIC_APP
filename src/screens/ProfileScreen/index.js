@@ -128,7 +128,7 @@ const ProfileScreen = () => {
       contact: phoneNumber,
       city: city,
       specialization: Service,
-      profile_picture: ImageUrl,
+      profile_picture: profilePic,
     });
   };
   // console.log('Data,', data, error);
@@ -165,7 +165,7 @@ const ProfileScreen = () => {
       includeBase64: true,
     });
     setProfilePic(result.assets?.[0]?.base64 || '');
-  }, [ImageUrl]);
+  }, [profilePic]);
   const handleFirstNameInput = text => {
     // Allow only alphabets (A-Za-z) and remove other characters
     setFirstName(text.replace(/[^A-Za-z]/g, ''));
@@ -227,13 +227,13 @@ const ProfileScreen = () => {
       <ScrollView>
         {/* Profile Picture */}
         <TouchableOpacity onPress={() => handlePickImage()}>
-          <Image
+          {profilePic &&<Image
             source={{
               uri: `data:image/png;base64,${profilePic}`,
             }}
             // source={profilePic}
             style={styles.profilePic}
-          />
+          />}
         </TouchableOpacity>
         {/* First Name */}
         {dataLoading === false && ProfileData && (
