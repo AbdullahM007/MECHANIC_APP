@@ -46,7 +46,7 @@ const LoginScreen = () => {
       dispatch(setUserId(data?.token?.id));
       // navigation.navigate('RootNavigator');
     } else if (error) {
-      Alert.alert('invalid details');
+      Alert.alert('Your Account is not still verified or Wrong Email/Password');
     }
   }, [data, error]);
 
