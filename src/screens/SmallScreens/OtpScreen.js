@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   Alert,
@@ -17,28 +16,24 @@ import { storeData } from '../Async/AsyncStorage';
 const OTPScreen = ({ route }) => {
   const dispatch = useDispatch();
   const [
-    otpConfirmation, // This is the mutation trigger
-    { data, error, isLoading: isUpdating }, // This is the destructured mutation result
+    otpConfirmation,
+    { data, error, isLoading: isUpdating },
   ] = useOtpConfirmationMutation();
   const navigation = useNavigation();
-  const [otp, setOtp] = useState(0);
+  const [otp, setOtp] = useState('');
   const phoneNumber = route?.params?.phNo;
 
   const handleVerifyOTP = () => {
     if (otp) {
       otpConfirmation({ contact: phoneNumber, otp: parseInt(otp) });
     }
-    // Implement the logic for verifying the OTP here
     console.log('Verifying OTP:', otp);
-    // Add your logic to validate the OTP and navigate to the next screen if it's correct
   };
 
-  // Define the success modal state and visibility
   const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
 
   React.useEffect(() => {
     if (data) {
-      // Show the success modal when OTP is successfully verified
       setIsSuccessModalVisible(true);
     } else if (error) {
       Alert.alert('', 'Invalid OTP');
@@ -48,18 +43,17 @@ const OTPScreen = ({ route }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Enter OTP</Text>
-      <View style={{ height: 100 }}>
-        <OtpInputs
-          handleChange={(code) => setOtp(code)}
-          numberOfInputs={6}
-          inputStyles={styles.otpInputStyles}
-        />
-      </View>
+      <OtpInputs
+        handleChange={(code) => setOtp(code)}
+        numberOfInputs={6}
+        inputStyles={styles.otpInputStyles}
+        keyboardType="number-pad"
+        secureTextEntry
+      />
       <TouchableOpacity style={styles.verifyButton} onPress={handleVerifyOTP}>
         <Text style={styles.verifyButtonText}>Verify OTP</Text>
       </TouchableOpacity>
 
-      {/* Success Modal */}
       <Modal
         visible={isSuccessModalVisible}
         transparent={true}
@@ -69,13 +63,13 @@ const OTPScreen = ({ route }) => {
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalText}>
-              Your Information is submitted and will soon be verified by our Team support.
+              Your information is submitted and will soon be verified by our support team.
             </Text>
             <TouchableOpacity
               style={styles.modalButton}
               onPress={() => {
                 setIsSuccessModalVisible(false);
-                navigation.navigate('NextScreen'); // Navigate to the next screen after verification
+                navigation.navigate('LoginScreen');
               }}
             >
               <Text style={styles.modalButtonText}>OK</Text>
@@ -88,20 +82,42 @@ const OTPScreen = ({ route }) => {
 };
 
 const styles = StyleSheet.create({
-  // Your existing styles ...
-
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f9f9f9', // Light gray background
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    color: '#333', // Dark gray text color
+  },
   otpInputStyles: {
     height: 60,
     width: 50,
     borderWidth: 2,
-    color: '#0A0A0A',
+    color: '#333', // Dark gray text color
     marginEnd: 10,
     borderRadius: 10,
     fontSize: 26,
     borderColor: 'rgba(10, 10, 10, 0.2)',
+    backgroundColor: '#fff', // White background for inputs
   },
-
-  // Modal styles
+  verifyButton: {
+    marginTop: 20,
+    backgroundColor: '#007bff',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  verifyButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -118,6 +134,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 20,
     textAlign: 'center',
+    color: '#333', // Dark gray text color
   },
   modalButton: {
     backgroundColor: '#007bff',
