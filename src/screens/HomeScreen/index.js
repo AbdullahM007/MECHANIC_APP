@@ -8,7 +8,7 @@ import {
   Modal,
 } from 'react-native';
 import React, {useEffect, useState, useCallback} from 'react';
-import MapView, {PROVIDER_GOOGLE} from 'react-native-maps';
+import MapView, {Marker, PROVIDER_GOOGLE} from 'react-native-maps';
 import MapViewDirections from 'react-native-maps-directions';
 import styles from './styles';
 import messaging from '@react-native-firebase/messaging';
@@ -16,6 +16,8 @@ import PushNotification from 'react-native-push-notification';
 import {
   useOrderResponceMutation,
   useSetDeviceTokenMutation,
+  useGetcurrentOrderQuery,
+  useGetUserByIdQuery,
 } from '../../ReduxTollKit/Stepney/stepneyUser';
 import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicon from 'react-native-vector-icons/Ionicons';
@@ -43,13 +45,22 @@ const HomeScreen = props => {
   const [userStatus, {data: userStatue, error: isErros}] =
     useUserStatusMutation();
   const {data: allOrder, error: orderError} = useGetallOrdersQuery();
+  const [custumerId, setCustumerId] = useState(null);
+  const {data: usebyId, error: userError} = useGetUserByIdQuery({
+    id: custumerId,
+  });
+  const UserId = useSelector(state => state.useData.userId);
+
   // console.log(JSON.stringify(allOrder), orderError);
   const [modalVisible, setModalVisible] = useState(false);
   const [updateLocation, {data: updateUserLocation, error: locationError}] =
     useUpdateLocationMutation();
+  const {data: currentOrder, error: currentOrderError} =
+    useGetcurrentOrderQuery({id: UserId});
+  console.log('USERID', UserId);
+  console.log('currentOrder', currentOrder, JSON.stringify(currentOrderError));
   // console.log('userStatue', userStatue, isErros);
   const location = useSelector(state => state.useData.location);
-  const UserId = useSelector(state => state.useData.userId);
   const [granted, setGranted] = useState(false);
   const navigateToEarningsScreen = () => {
     navigation.navigate('EarningsScreen');
@@ -60,7 +71,8 @@ const HomeScreen = props => {
     orderResponce,
     {data: responseData, error: responceError, isLoading: responceLoading},
   ] = useOrderResponceMutation();
-  // console.log('responseData', responseData, responceError, responceLoading);
+  console.log('useGetUserByIdQuery', usebyId);
+  console.log('responseData', responseData, responceError, responceLoading);
   const [isOnline, setIsOnline] = useState(false);
   const [myPosition, setMyPosition] = useState(null);
   const [order, setOrder] = useState(null);
@@ -81,43 +93,52 @@ const HomeScreen = props => {
   });
   const handleReject = item => {
     orderResponce({
-      customer_id: item?.customer,
+      customer_id: item?.data?.customer,
       mechanic_id: UserId,
       mechanic_response: false,
     });
   };
   const handleAccept = item => {
-    console.log(item);
+    console.log('item,item', item?.data?.customer);
+    setCustumerId(item?.data?.customer);
     orderResponce({
-      customer_id: 15,
+      customer_id: item?.data?.customer,
       mechanic_id: UserId,
       mechanic_response: true,
     });
   };
   useEffect(() => {
     // Iterate through the orders
-    if (allOrder) {
-      allOrder.orders.forEach(order => {
-        if (order.status === 'pending' && responceLoading === false) {
-          Alert.alert(
-            'Confirm Action',
-            'Do you want to accept or reject this order?',
-            [
-              {
-                text: 'Reject',
-                style: 'destructive',
-                onPress: () => handleReject(order),
-              },
-              {
-                text: 'Accept',
-                onPress: () => handleAccept(order),
-              },
-            ],
-          );
-        }
-      });
+    if (currentOrder) {
+      // allOrder.orders.forEach(order => {
+      if (
+        currentOrder?.data?.status === 'pending' &&
+        responceLoading === false
+      ) {
+        Alert.alert(
+          'Confirm Action',
+          'Do you want to accept or reject this order?',
+          [
+            {
+              text: 'Reject',
+              style: 'destructive',
+              onPress: () => handleReject(currentOrder),
+            },
+            {
+              text: 'Accept',
+              onPress: () => handleAccept(currentOrder),
+            },
+          ],
+        );
+      } else if (
+        currentOrder?.data?.status === 'accepted' &&
+        responceLoading === false
+      ) {
+        setCustumerId(currentOrder?.data?.customer);
+      }
+      // });
     }
-  }, [allOrder]);
+  }, [currentOrder]);
   const requestLocationPermission = async () => {
     try {
       await PermissionsAndroid.request(
@@ -152,7 +173,7 @@ const HomeScreen = props => {
   useEffect(() => {
     requestLocationPermission();
   }, []);
-
+  console.log('LOCATION PERMISSION ERROR', location);
   function getLocation() {
     Geolocation.getCurrentPosition(
       position => {
@@ -227,17 +248,18 @@ const HomeScreen = props => {
       });
     }
   };
+  const destinationLoc = {
+    latitude: usebyId?.destLatitude,
+    longitude: usebyId?.destLongitude,
+  };
   const getDestination = () => {
-    if (order && order.pickedUp) {
+    if (usebyId) {
       return {
-        latitude: order.destLatitude,
-        longitude: order.destLongitude,
+        latitude: usebyId.destLatitude,
+        longitude: usebyId.destLongitude,
       };
     }
-    return {
-      latitude: order.originLatitude,
-      longitude: order.origeinLongitude,
-    };
+    return {latitude: usebyId.destLatitude, longitude: usebyId.destLongitude};
   };
 
   const renderBottomTitle = () => {
@@ -418,19 +440,25 @@ const HomeScreen = props => {
       <MapView
         style={{width: '100%', height: Dimensions.get('window').height - 170}}
         provider={PROVIDER_GOOGLE}
-        showsUserLocation={true}
-        onUserLocationChange={onUserLocationChange}
+        // showsUserLocation={true}
+        // onUserLocationChange={onUserLocationChange}
         initialRegion={{
           latitude: location.lat,
           longitude: location.lon,
           latitudeDelta: 0.015,
           longitudeDelta: 0.0121,
         }}>
-        {order && (
+        <Marker
+          coordinate={{
+            latitude: location.lat,
+            longitude: location.lon,
+          }}
+        />
+        {true && (
           <MapViewDirections
             origin={myPosition}
-            onReady={onDirectionFound}
-            destination={getDestination()}
+            // onReady={onDirectionFound}
+            destination={getDestination}
             strokeWidth={5}
             strokeColor="black"
             apikey={GOOGLE_MAPS_APIKEY}

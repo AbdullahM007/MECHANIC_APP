@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -7,25 +7,23 @@ import {
   Alert,
   Modal,
 } from 'react-native';
-import { useOtpConfirmationMutation } from '../../ReduxTollKit/Stepney/stepney';
-import { useNavigation } from '@react-navigation/native';
+import {useOtpConfirmationMutation} from '../../ReduxTollKit/Stepney/stepney';
+import {useNavigation} from '@react-navigation/native';
 import OtpInputs from 'react-native-otp-inputs';
-import { useDispatch } from 'react-redux';
-import { storeData } from '../Async/AsyncStorage';
+import {useDispatch} from 'react-redux';
+import {storeData} from '../Async/AsyncStorage';
 
-const OTPScreen = ({ route }) => {
+const OTPScreen = ({route}) => {
   const dispatch = useDispatch();
-  const [
-    otpConfirmation,
-    { data, error, isLoading: isUpdating },
-  ] = useOtpConfirmationMutation();
+  const [otpConfirmation, {data, error, isLoading: isUpdating}] =
+    useOtpConfirmationMutation();
   const navigation = useNavigation();
-  const [otp, setOtp] = useState('');
-  const phoneNumber = route?.params?.phNo;
-
+  const [otp, setOtp] = useState();
+  const email = route?.params?.email;
+  console.log('email', email);
   const handleVerifyOTP = () => {
     if (otp) {
-      otpConfirmation({ contact: phoneNumber, otp: parseInt(otp) });
+      otpConfirmation({email: email, otp: parseInt(otp)});
     }
     console.log('Verifying OTP:', otp);
   };
@@ -39,12 +37,12 @@ const OTPScreen = ({ route }) => {
       Alert.alert('', 'Invalid OTP');
     }
   }, [data, error]);
-
+  console.log('JSON.stringify(error)', JSON.stringify(error));
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Enter OTP</Text>
       <OtpInputs
-        handleChange={(code) => setOtp(code)}
+        handleChange={code => setOtp(code)}
         numberOfInputs={6}
         inputStyles={styles.otpInputStyles}
         keyboardType="number-pad"
@@ -58,20 +56,19 @@ const OTPScreen = ({ route }) => {
         visible={isSuccessModalVisible}
         transparent={true}
         animationType="slide"
-        onRequestClose={() => setIsSuccessModalVisible(false)}
-      >
+        onRequestClose={() => setIsSuccessModalVisible(false)}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalText}>
-              Your information is submitted and will soon be verified by our support team.
+              Your information is submitted and will soon be verified by our
+              support team.
             </Text>
             <TouchableOpacity
               style={styles.modalButton}
               onPress={() => {
                 setIsSuccessModalVisible(false);
                 navigation.navigate('LoginScreen');
-              }}
-            >
+              }}>
               <Text style={styles.modalButtonText}>OK</Text>
             </TouchableOpacity>
           </View>

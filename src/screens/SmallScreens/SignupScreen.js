@@ -207,7 +207,7 @@ const SignUpScreen = () => {
   };
   useEffect(() => {
     if (data) {
-      navigation.navigate('OTPScreen', {phNo: phoneCountryCode + phoneNumber});
+      navigation.navigate('OTPScreen', {email: email});
     }
   }, [data]);
 
