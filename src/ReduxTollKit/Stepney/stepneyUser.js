@@ -117,6 +117,14 @@ export const stepneyUserDetailsApi = createApi({
       query: () => `/orders/`,
       invalidatesTags: ['refetchuser'],
     }),
+    getcurrentOrder: builder.query({
+      query: ({id}) => `/latestorder/${id}`,
+      invalidatesTags: ['refetchuser'],
+    }),
+    getUserById: builder.query({
+      query: ({id}) => `/getuser/${id}`,
+      invalidatesTags: ['refetchuser'],
+    }),
   }),
 });
 
@@ -133,4 +141,6 @@ export const {
   useGetallOrdersQuery,
   useOrderResponceMutation,
   useUpdateLocationMutation,
+  useGetcurrentOrderQuery,
+  useGetUserByIdQuery,
 } = stepneyUserDetailsApi;
