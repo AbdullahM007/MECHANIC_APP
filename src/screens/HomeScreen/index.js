@@ -327,9 +327,9 @@ const HomeScreen = props => {
       );
     }
     if (isOnline) {
-      return <Text style={styles.bottomText}>You're Online</Text>;
+      return <Text style={styles.bottomText}>You will Online</Text>;
     }
-    return <Text style={styles.bottomText}>You're Offline</Text>;
+    return <Text style={styles.bottomText}>You will Offline</Text>;
   };
 
   useEffect(() => {
@@ -475,7 +475,7 @@ const HomeScreen = props => {
   </Pressable> */}
 
       <Pressable onPress={onGoPress} style={[styles.goButton]}>
-        <Text style={styles.goText}> {isOnline ? 'End' : 'GO'}</Text>
+        <Text style={styles.goText}> {isOnline ? 'GO' : 'END'}</Text>
       </Pressable>
 
       <View style={styles.bottomContainer}>
