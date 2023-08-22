@@ -178,7 +178,7 @@ const SignUpScreen = () => {
         console.error('dfdgdg', error.code, error.message);
         dispatch(setLocationaccess(false));
       },
-      {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
+      {enableHighAccuracy: false, timeout: 15000, maximumAge: 10000},
     );
   }
   console.log('PERMISSIONS', granted);
@@ -411,7 +411,7 @@ const styles = StyleSheet.create({
   input: {
     width: '80%',
     height: 40,
-    color:'black',
+    color: 'black',
     borderColor: '#ccc',
     borderWidth: 1,
     borderRadius: 10,
@@ -456,7 +456,7 @@ const styles = StyleSheet.create({
   countryCode: {
     width: '25%',
     borderRadius: 10,
-    color:'black',
+    color: 'black',
 
     height: 40,
     borderColor: '#ccc',

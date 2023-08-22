@@ -75,6 +75,19 @@ export const stepneyUserDetailsApi = createApi({
         };
       },
     }),
+    updateLocation: builder.mutation({
+      // note: an optional `queryFn` may be used in place of `query`
+      query: body => {
+        // console.log('ERRRODATE', body);
+        return {
+          url: `/setlocation/`,
+          method: 'PUT',
+          body: body,
+          // headers: {'Content-Type': 'application/json'},
+          providesTags: ['userData'],
+        };
+      },
+    }),
     setDeviceToken: builder.mutation({
       // note: an optional `queryFn` may be used in place of `query`
       query: body => {
@@ -119,4 +132,5 @@ export const {
   useSetDeviceTokenMutation,
   useGetallOrdersQuery,
   useOrderResponceMutation,
+  useUpdateLocationMutation,
 } = stepneyUserDetailsApi;

@@ -21,7 +21,10 @@ import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicon from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import NewOrderPopUp from '../../components/NewOrderPopUp';
-import {useGetallOrdersQuery} from '../../ReduxTollKit/Stepney/stepneyUser';
+import {
+  useGetallOrdersQuery,
+  useUpdateLocationMutation,
+} from '../../ReduxTollKit/Stepney/stepneyUser';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {useSelector, useDispatch} from 'react-redux';
 import {useUserStatusMutation} from '../../ReduxTollKit/Stepney/stepney';
@@ -42,7 +45,8 @@ const HomeScreen = props => {
   const {data: allOrder, error: orderError} = useGetallOrdersQuery();
   // console.log(JSON.stringify(allOrder), orderError);
   const [modalVisible, setModalVisible] = useState(false);
-
+  const [updateLocation, {data: updateUserLocation, error: locationError}] =
+    useUpdateLocationMutation();
   // console.log('userStatue', userStatue, isErros);
   const location = useSelector(state => state.useData.location);
   const UserId = useSelector(state => state.useData.userId);
@@ -50,6 +54,7 @@ const HomeScreen = props => {
   const navigateToEarningsScreen = () => {
     navigation.navigate('EarningsScreen');
   };
+  console.log('location', location, 'updateLocation', updateUserLocation);
   const [notificationToken, setNotificationToken] = useState('');
   const [
     orderResponce,
@@ -157,6 +162,11 @@ const HomeScreen = props => {
         //   lat: position.coords.latitude,
         //   lon: position.coords.longitude,
         // }),
+        updateLocation({
+          id: UserId,
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
         dispatch(
           setLocation({
             lat: position.coords.latitude,
@@ -171,7 +181,7 @@ const HomeScreen = props => {
         console.error('dfdgdg', error.code, error.message);
         dispatch(setLocationaccess(false));
       },
-      {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
+      {enableHighAccuracy: false, timeout: 15000, maximumAge: 10000},
     );
   }
   useEffect(() => {
